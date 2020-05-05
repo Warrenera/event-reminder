@@ -1,11 +1,11 @@
-# TODO: look into import format to make inline use less wordy
 # TODO: Convert code from functional code to object-oriented code
 # TODO: Look into using actual data structure like JSON instead of custom "x : y" text formatting
 # TODO: Look into official commenting etiquette for good comment hygiene
 # TODO: Look into ways to remove some magic numbers, lots of assumptions made in here
+# TODO: Do I need a main()?
 
-import datetime
-import calendar
+from calendar import setfirstweekday, monthcalendar, calendar
+from datetime import datetime
 
 
 def get_varying_days(event_items, this_year_m, this_year_f, current_year):
@@ -36,8 +36,8 @@ def get_varying_days(event_items, this_year_m, this_year_f, current_year):
 
 def get_day(current_year, month, sundays):
     i = 0
-    calendar.setfirstweekday(calendar.SUNDAY)
-    for week in calendar.monthcalendar(current_year, month):
+    setfirstweekday(calendar.SUNDAY)
+    for week in monthcalendar(current_year, month):
         if week[0] == 0:
             continue  # If the first day of the month is not Sunday, disregard that week
         else:
@@ -48,8 +48,8 @@ def get_day(current_year, month, sundays):
 
 def append_events(event_items, today, this_month, this_week, this_day):
     for date, event in event_items:
-        d = datetime.datetime.strptime(date, "%m-%d")
-        t = datetime.datetime.strptime(today, "%m-%d")
+        d = datetime.strptime(date, "%m-%d")
+        t = datetime.strptime(today, "%m-%d")
 
         if 0 <= (d - t).days <= 31:
             this_month.append((date, event))
@@ -90,7 +90,7 @@ def main():
     this_week = []
     this_day = []
 
-    dt = datetime.datetime.now()
+    dt = datetime.now()
     today = dt.strftime("%m-%d")
 
     current_year = int(dt.strftime("%Y"))
