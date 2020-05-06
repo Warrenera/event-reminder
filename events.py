@@ -1,11 +1,30 @@
-# TODO: Convert code from functional code to object-oriented code
 # TODO: Look into using actual data structure like JSON instead of custom "x : y" text formatting
 # TODO: Look into official commenting etiquette for good comment hygiene
-# TODO: Look into ways to remove some magic numbers, lots of assumptions made in here
-# TODO: Do I need a main()?
+# TODO: Figure out why debugger won't run through program
 
 from calendar import setfirstweekday, monthcalendar, calendar
 from datetime import datetime
+
+
+def get_current_list():
+    #  Reads events from text file; gets last known year, Mother's, and Father's day
+    events = {}
+    last_known_year = 0
+    this_year_f = ""
+    this_year_m = ""
+
+    with open("events.txt", "r") as file:
+        for line in file:
+            if line.startswith("0") or line.startswith("1"):
+                (key, val) = line.split(" : ")
+                events[key] = val.rstrip("\n")
+            elif line.startswith("y"):
+                last_known_year = int(line[4:])
+            elif line.startswith("f"):
+                this_year_f = line[4:].rstrip("\n")
+            elif line.startswith("m"):
+                this_year_m = line[4:].rstrip("\n")
+    return events.items(), last_known_year, this_year_f, this_year_m
 
 
 def get_varying_days(event_items, this_year_m, this_year_f, current_year):
@@ -94,31 +113,13 @@ def main():
     today = dt.strftime("%m-%d")
 
     current_year = int(dt.strftime("%Y"))
-    year = 0
 
-    this_year_m = ""
-    this_year_f = ""
-
-    #  Reads events from text file; gets last known year, Mother's, and Father's day
-    events = {}
-    with open("events.txt", "r") as file:
-        for line in file:
-            if line.startswith("0") or line.startswith("1"):
-                (key, val) = line.split(" : ")
-                events[key] = val.rstrip("\n")
-            elif line.startswith("y"):
-                year = int(line[4:])
-            elif line.startswith("f"):
-                this_year_f = line[4:].rstrip("\n")
-            elif line.startswith("m"):
-                this_year_m = line[4:].rstrip("\n")
-
-    event_items = events.items()
+    event_items, last_known_year, this_year_f, this_year_m = get_current_list()
 
     # Gets the dates for this year's Mother's and Father's Days
     # 6-11-18: Logic error where new dates would never be fetched may occur if file year is correct but the dates aren't
     # Given this should only happen if dates were manually changed, it was deemed too unlikely to occur to bother fixing
-    if year != current_year:
+    if last_known_year != current_year:
         get_varying_days(event_items, this_year_m, this_year_f, current_year)
 
     this_month, this_week, this_day = append_events(event_items, today, this_month, this_week, this_day)
