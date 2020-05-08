@@ -1,6 +1,5 @@
 # TODO: Look into using actual data structure like JSON instead of custom "x : y" text formatting
 # TODO: Look into official commenting etiquette for good comment hygiene
-# TODO: Figure out why debugger won't run through program
 
 from calendar import setfirstweekday, monthcalendar, calendar
 from datetime import datetime

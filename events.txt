@@ -1,4 +1,10 @@
+#  Use this file to add your events to be displayed by the script in "MM-DD : your event here" format.
+#  The first three lines below these comments need to be in the following format
+#       m : MM-DD
+#       f : MM-DD
+#       y : MM-DD
+#  They represent the last known Mother's Day, Father's Day, and year, to be updated as needed by the script
 m : 05-10
 f : 06-21
 y : 2020
-05-06 : So-and-So's Birthday
+05-08 : So-and-So's Birthday
