@@ -6,7 +6,14 @@ from datetime import datetime
 
 
 def get_current_list():
-    #  Reads events from text file; gets last known year, Mother's, and Father's day
+    """
+    Read events from text file; gets last known year, Mother's, and Father's day
+
+    :return: dict of important events
+    :return: last known year the program was run
+    :return: Mother's Day this year
+    :return: Father's Day this year
+    """
     events = {}
     last_known_year = 0
     this_year_f = ""
@@ -126,6 +133,6 @@ def main():
     print_events(this_month, this_week, this_day)
 
 
-#  Initializes main function
+# Initializes main function
 if __name__ == "__main__":
     main()
