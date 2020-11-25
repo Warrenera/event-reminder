@@ -15,9 +15,9 @@ def get_current_list():
     :return: Father's Day this year
     """
     events = {}
-    last_known_year = 0
-    this_year_f = ""
-    this_year_m = ""
+    last_year_ran = 0
+    fathers_day = ""
+    mothers_day = ""
 
     with open("events.txt", "r") as file:
         for line in file:
@@ -25,12 +25,12 @@ def get_current_list():
                 (key, val) = line.split(" : ")
                 events[key] = val.rstrip("\n")
             elif line.startswith("y"):
-                last_known_year = int(line[4:])
+                last_year_ran = int(line[4:])
             elif line.startswith("f"):
-                this_year_f = line[4:].rstrip("\n")
+                fathers_day = line[4:].rstrip("\n")
             elif line.startswith("m"):
-                this_year_m = line[4:].rstrip("\n")
-    return events.items(), last_known_year, this_year_f, this_year_m
+                mothers_day = line[4:].rstrip("\n")
+    return events.items(), last_year_ran, fathers_day, mothers_day
 
 
 def get_varying_days(event_items, this_year_m, this_year_f, current_year):
@@ -115,18 +115,17 @@ def main():
     this_week = []
     this_day = []
 
-    dt = datetime.now()
-    today = dt.strftime("%m-%d")
+    date_time = datetime.now()
+    today = date_time.strftime("%m-%d")
+    current_year = int(date_time.strftime("%Y"))
 
-    current_year = int(dt.strftime("%Y"))
-
-    event_items, last_known_year, this_year_f, this_year_m = get_current_list()
+    event_items, last_year_ran, fathers_day, mothers_day = get_current_list()
 
     # Gets the dates for this year's Mother's and Father's Days
     # 6-11-18: Logic error where new dates would never be fetched may occur if file year is correct but the dates aren't
     # Given this should only happen if dates were manually changed, it was deemed too unlikely to occur to bother fixing
-    if last_known_year != current_year:
-        get_varying_days(event_items, this_year_m, this_year_f, current_year)
+    if last_year_ran != current_year:
+        get_varying_days(event_items, mothers_day, fathers_day, current_year)
 
     this_month, this_week, this_day = append_events(event_items, today, this_month, this_week, this_day)
 
