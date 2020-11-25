@@ -1,7 +1,7 @@
 # TODO: Look into using actual data structure like JSON instead of custom "x : y" text formatting
 # TODO: Look into official commenting etiquette for good comment hygiene
 
-from calendar import setfirstweekday, monthcalendar, calendar
+from calendar import setfirstweekday, monthcalendar
 from datetime import datetime
 
 
@@ -57,7 +57,7 @@ def get_varying_days(event_items, last_mothers_day, last_fathers_day, current_ye
 
 def get_day(current_year, month, sundays):
     i = 0
-    setfirstweekday(calendar.SUNDAY)
+    setfirstweekday(6)  # Sets the first day of the week to Sunday
     for week in monthcalendar(current_year, month):
         if week[0] == 0:
             continue  # If the first day of the month is not Sunday, disregard that week
