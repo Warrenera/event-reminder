@@ -30,18 +30,18 @@ def get_current_list():
 
 
 def get_varying_days(event_items, this_year_m, this_year_f, current_year):
-    next_m = "05-"
-    next_f = "06-"
+    next_mothers_day = "05-"
+    next_fathers_day = "06-"
     month = 5    # Mother's Day is always in May, the fifth month
     sundays = 2  # Mother's Day is always the second Sunday in May
 
     for i in range(0, 2):
         if i == 0:
-            next_m += get_day(current_year, month, sundays)
+            next_mothers_day += get_day(current_year, month, sundays)
         else:
             month += 1    # Father's Day is always in June, the sixth month
             sundays += 1  # Father's Day is always the third Sunday in June
-            next_f += get_day(current_year, month, sundays)
+            next_fathers_day += get_day(current_year, month, sundays)
 
     with open("events.txt", "w") as file:
         file.write("m : " + next_m + "\n")
