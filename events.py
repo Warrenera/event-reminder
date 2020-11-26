@@ -1,5 +1,4 @@
-# TODO: Look into official commenting etiquette for good comment hygiene
-
+"""Alert the user at startup to upcoming events from the supplied text files."""
 import csv
 import configparser
 from datetime import datetime
@@ -7,9 +6,10 @@ from calendar import setfirstweekday, monthcalendar
 
 
 class CurrentYear:
+    """Create and populate an object holding the events that occur in the current year."""
     mothers_day = "05-"
     fathers_day = "06-"
-    month = 5  # Mother's Day is always in May, the fifth month
+    month = 5    # Mother's Day is always in May, the fifth month
     sundays = 2  # Mother's Day is always the second Sunday in May
 
     def __init__(self):
@@ -22,6 +22,12 @@ class CurrentYear:
         self.event_items = self.get_events()
 
     def get_last_varying_values(self, config):
+        """
+        Get the values for M<other's Day, Father's Day, and the year of the script's last run.
+
+        :param config: A ConfigParser instance to read the values from varying_values.ini.
+        :return: The last run's values for Mother's Day, Father's Day, and the year run.
+        """
         varying_values = ["last_year_ran", "last_fathers_day", "last_mothers_day"]
         config.read("varying_values.ini")
         for i, var in enumerate(varying_values):
@@ -29,6 +35,11 @@ class CurrentYear:
         return [varying_values[0], varying_values[1], varying_values[2]]
 
     def get_events(self):
+        """
+        Get events listed in events.csv
+
+        :return: Items of the gathered event list.
+        """
         events = {self.last_fathers_day: "Father's Day", self.last_mothers_day: "Mother's Day"}
         with open("events.csv", "r") as csvfile:
             reader = csv.DictReader(csvfile)
@@ -37,6 +48,7 @@ class CurrentYear:
         return events.items()
 
     def set_new_varying_values(self):
+        """Set new values for Mother's Day, Father's Day, and the year ran."""
         for i in range(0, 2):
             if i == 0:
                 self.mothers_day += self.get_day()
@@ -51,6 +63,11 @@ class CurrentYear:
             self.config.write(conf)
 
     def get_day(self):
+        """
+        Get the day and month (MM-DD) of the specified holiday.
+
+        :return: A string of the date.
+        """
         i = 0
         setfirstweekday(6)  # Sets the first day of the week to Sunday
         for week in monthcalendar(self.this_year, self.month):
@@ -63,6 +80,9 @@ class CurrentYear:
 
 
 class EventReminder:
+    """
+    Create and populate an object holding the event lists for each timeframe.
+    """
     def __init__(self, current_year):
         self.current_year = current_year
         self.this_month = []
@@ -71,6 +91,11 @@ class EventReminder:
         self.this_month, self.this_week, self.this_day = self.append_events()
 
     def append_events(self):
+        """
+        Append the events gathered in the CurrentYear object to their respective lists.
+
+        :return: Finalized lists of events occurring in the next 30 days, 7 days, and 1 day.
+        """
         for date, event in self.current_year.event_items:
             d = datetime.strptime(date, "%m-%d")
             t = datetime.strptime(self.current_year.today, "%m-%d")
@@ -84,6 +109,7 @@ class EventReminder:
         return [self.this_month, self.this_week, self.this_day]
 
     def print_events(self):
+        """Print events occurring in the next month, week, and today."""
         print("Hello! Welcome to your family and friend birthday and important event reminder, brought to you by wonderful Python!")
 
         if not self.this_month and not self.this_week and not self.this_day:
@@ -107,6 +133,7 @@ class EventReminder:
 
 
 def main():
+    """Instantiate the CurrentYear and EventReminder objects, and print upcoming events."""
     current_year = CurrentYear()
     event_reminder = EventReminder(current_year)
 
