@@ -1,4 +1,0 @@
-m : 05-10
-f : 06-21
-y : 2020
-12-25 : So-and-So's Birthday
