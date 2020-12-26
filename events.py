@@ -23,7 +23,7 @@ class CurrentYear:
 
     def get_last_varying_values(self, config):
         """
-        Get the values for M<other's Day, Father's Day, and the year of the script's last run.
+        Get the values for Mother's Day, Father's Day, and the year of the script's last run.
 
         :param config: A ConfigParser instance to read the values from varying_values.ini.
         :return: The last run's values for Mother's Day, Father's Day, and the year run.
@@ -96,10 +96,9 @@ class EventReminder:
 
         :return: Finalized lists of events occurring in the next 30 days, 7 days, and 1 day.
         """
+        t = datetime.strptime(self.current_year.today, "%m-%d")
         for date, event in self.current_year.event_items:
             d = datetime.strptime(date, "%m-%d")
-            t = datetime.strptime(self.current_year.today, "%m-%d")
-
             if 7 < (d - t).days <= 31:
                 self.this_month.append((date, event))
             if 1 < (d - t).days <= 7:
@@ -146,6 +145,6 @@ def main():
     event_reminder.print_events()
 
 
-# Initializes main function
+# Initialize main function
 if __name__ == "__main__":
     main()
