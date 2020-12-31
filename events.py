@@ -19,7 +19,7 @@ class CurrentYear:
 
         self.config = configparser.ConfigParser()
         self.last_year_ran, self.last_fathers_day, self.last_mothers_day = self.get_last_varying_values(self.config)
-        self.event_items = self.get_events(self.this_year)
+        self.event_items = self.get_events(str(self.this_year))
 
     def get_last_varying_values(self, config):
         """
@@ -38,15 +38,42 @@ class CurrentYear:
         """
         Get events listed in events.csv
 
+        :param this_year: The current year, needed to append the year to each event date.
         :return: Items of the gathered event dictionary.
         """
-        events = {self.last_fathers_day + "-" + str(this_year): "Father's Day",
-                  self.last_mothers_day + "-" + str(this_year): "Mother's Day"}
+        events = {self.last_fathers_day + "-" + this_year: "Father's Day",
+                  self.last_mothers_day + "-" + this_year: "Mother's Day"}
         with open("events.csv", "r") as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                events[row["date"] + "-" + str(this_year)] = row["event"].rstrip("\n")
+            dict_list = list(csv.DictReader(csvfile))
+        self.list_values(dict_list, events, this_year, False)
+        if self.now.strftime("%m") == "12":
+            self.list_values(dict_list, events, this_year, True)
         return events.items()
+
+    def list_values(self, dict_list, events, this_year, december):
+        """
+        Abstract out the dictionary-list conversion and add the values present in the CSV to the events dictionary.
+
+        :param dict_list: List of dictionaries from the CSV reader.
+        :param events: Event dictionary to store events from CSV.
+        :param this_year: The current year.
+        :param december: Boolean determining if the current month is December, necessary to add next January's events if needed.
+        :return: The filled events dictionary.
+        """
+        for dictionary in dict_list:
+            list_values = list(dictionary.values())
+            if not december:
+                for i, event in enumerate(list_values):
+                    if i == 0:
+                        events[list_values[i] + "-" + this_year] = list_values[i+1].rstrip("\n")
+            else:
+                for i, event in enumerate(list_values):
+                    if i == 0 and event.startswith("01-"):
+                        events[list_values[i] + "-" + str(self.this_year+1)] = list_values[i+1].rstrip("\n")
+                        print("hey")
+                    else:
+                        break
+        return events
 
     def set_new_varying_values(self):
         """Set new values for Mother's Day, Father's Day, and the year ran."""
