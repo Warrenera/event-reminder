@@ -1,8 +1,8 @@
 """Alert the user at startup to upcoming events from the supplied text files."""
-import csv
 import configparser
-from datetime import datetime
+import csv
 from calendar import setfirstweekday, monthcalendar
+from datetime import datetime
 
 
 class CurrentYear:
