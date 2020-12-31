@@ -14,19 +14,19 @@ class CurrentYear:
 
     def __init__(self):
         self.now = datetime.now()
-        self.today = self.now.strftime("%m-%d")
+        self.today = self.now.strftime("%m-%d-%Y")
         self.this_year = int(self.now.strftime("%Y"))
 
         self.config = configparser.ConfigParser()
         self.last_year_ran, self.last_fathers_day, self.last_mothers_day = self.get_last_varying_values(self.config)
-        self.event_items = self.get_events()
+        self.event_items = self.get_events(self.this_year)
 
     def get_last_varying_values(self, config):
         """
         Get the values for Mother's Day, Father's Day, and the year of the script's last run.
 
         :param config: A ConfigParser instance to read the values from varying_values.ini.
-        :return: The last run's values for Mother's Day, Father's Day, and the year run.
+        :return: List of the last run's values for Mother's Day, Father's Day, and the year run.
         """
         varying_values = ["last_year_ran", "last_fathers_day", "last_mothers_day"]
         config.read("varying_values.ini")
@@ -34,17 +34,18 @@ class CurrentYear:
             varying_values[i] = self.config.get("last_known_values", var)
         return [varying_values[0], varying_values[1], varying_values[2]]
 
-    def get_events(self):
+    def get_events(self, this_year):
         """
         Get events listed in events.csv
 
-        :return: Items of the gathered event list.
+        :return: Items of the gathered event dictionary.
         """
-        events = {self.last_fathers_day: "Father's Day", self.last_mothers_day: "Mother's Day"}
+        events = {self.last_fathers_day + "-" + str(this_year): "Father's Day",
+                  self.last_mothers_day + "-" + str(this_year): "Mother's Day"}
         with open("events.csv", "r") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                events[row["date"]] = row["event"].rstrip("\n")
+                events[row["date"] + "-" + str(this_year)] = row["event"].rstrip("\n")
         return events.items()
 
     def set_new_varying_values(self):
@@ -96,14 +97,14 @@ class EventReminder:
 
         :return: Finalized lists of events occurring in the next 30 days, 7 days, and 1 day.
         """
-        t = datetime.strptime(self.current_year.today, "%m-%d")
+        t = datetime.strptime(self.current_year.today, "%m-%d-%Y")
         for date, event in self.current_year.event_items:
-            d = datetime.strptime(date, "%m-%d")
+            d = datetime.strptime(date, "%m-%d-%Y")
             if 7 < (d - t).days <= 31:
                 self.this_month.append((date, event))
             if 1 < (d - t).days <= 7:
                 self.this_week.append((date, event))
-            if date == self.current_year.today:
+            if 0 < (d - t).days <= 1:  # Alternatively, use "date == self.current_year.today:"
                 self.this_day.append((date, event))
         return [self.this_month, self.this_week, self.this_day]
 
