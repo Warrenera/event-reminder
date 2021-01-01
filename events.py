@@ -1,12 +1,11 @@
 # TODO: Add option to supply events.csv location; if none is given, default to the repo CSV. Probably involves figuring out how
 #  to handle command line arguments in batch files.
-# TODO: Change order of set_last_varying_days() to run before get_events() so any new dates will be used.
 # TODO: Address the comment in main() from 2018 lol.
 
 """Alert the user at startup to upcoming events from the supplied text files."""
 import configparser
 import csv
-from calendar import setfirstweekday, monthcalendar
+from calendar import monthcalendar
 from datetime import datetime
 
 
@@ -22,22 +21,52 @@ class CurrentYear:
         self.today = self.now.strftime("%m-%d-%Y")
         self.this_year_str = self.now.strftime("%Y")
         self.this_year_int = int(self.this_year_str)
+        self.event_items = {}
 
-        self.config = configparser.ConfigParser()
-        self.last_year_ran, self.last_fathers_day, self.last_mothers_day = self.get_last_varying_values()
-        self.event_items = self.get_events()
-
-    def get_last_varying_values(self):
+    def get_last_varying_values(self, config):
         """
-        Get the values for Mother's Day, Father's Day, and the year of the script's last run as listed in varying_values.ini.
+        Get the values for Mother's Day, Father's Day, and the year of the script's last run as listed in varying_values.ini. If this
+        is the first run of the year (or some other reason the values don't align with this_year) they will be updated first.
 
         :return: List of the last run's values for Mother's Day, Father's Day, and the year run.
         """
         varying_values = ["last_year_ran", "last_fathers_day", "last_mothers_day"]
-        self.config.read("varying_values.ini")
+        config.read("varying_values.ini")
+        if config.get("last_known_values", varying_values[0]) != self.this_year_int:
+            # Gets the dates for this year's Mother's and Father's Days
+            # 6-11-18: Logic error where new dates would never be fetched may occur if file year is correct but the dates aren't
+            # Given this should only happen if dates were manually changed, it was deemed too unlikely to occur to bother fixing
+            self.set_new_varying_values(config)
         for i, var in enumerate(varying_values):
-            varying_values[i] = self.config.get("last_known_values", var)
+            varying_values[i] = config.get("last_known_values", var)
         return [varying_values[0], varying_values[1], varying_values[2]]
+
+    def set_new_varying_values(self, config):
+        """Set new values for Mother's Day, Father's Day, and the year ran."""
+        self.mothers_day += self.get_day()
+        self.month += 1    # Father's Day is always in June, the sixth month
+        self.sundays += 1  # Father's Day is always the third Sunday in June
+        self.fathers_day += self.get_day()
+        with open("varying_values.ini", "w") as conf:
+            config["last_known_values"]["last_mothers_day"] = self.mothers_day
+            config["last_known_values"]["last_fathers_day"] = self.fathers_day
+            config["last_known_values"]["last_year_ran"] = self.this_year_str
+            config.write(conf)
+
+    def get_day(self):
+        """
+        Get the month and day (MM-DD) of the specified holiday.
+
+        :return: A string of the date.
+        """
+        i = 0
+        for week in monthcalendar(self.this_year_int, self.month):
+            if week[6] == 0:  # Sunday being the last day of the week by default
+                continue  # If the first day of the month is not Sunday, disregard that week
+            else:
+                i += 1
+                if i == self.sundays:
+                    return str(week[0])
 
     def get_events(self):
         """
@@ -45,8 +74,8 @@ class CurrentYear:
 
         :return: Items of the gathered event dictionary.
         """
-        events = {self.last_fathers_day + "-" + self.this_year_str: "Father's Day",
-                  self.last_mothers_day + "-" + self.this_year_str: "Mother's Day"}
+        events = {self.fathers_day + "-" + self.this_year_str: "Father's Day",
+                  self.mothers_day + "-" + self.this_year_str: "Mother's Day"}
         with open("events.csv", "r") as csvfile:
             dict_list = list(csv.DictReader(csvfile))
         self.list_values(dict_list, events, False)
@@ -76,37 +105,6 @@ class CurrentYear:
                     else:
                         break
         return events
-
-    def set_new_varying_values(self):
-        """Set new values for Mother's Day, Father's Day, and the year ran."""
-        for i in range(0, 2):
-            if i == 0:
-                self.mothers_day += self.get_day()
-            else:
-                self.month += 1    # Father's Day is always in June, the sixth month
-                self.sundays += 1  # Father's Day is always the third Sunday in June
-                self.fathers_day += self.get_day()
-        with open("varying_values.ini", "w") as conf:
-            self.config["last_known_values"]["last_mothers_day"] = self.mothers_day
-            self.config["last_known_values"]["last_fathers_day"] = self.fathers_day
-            self.config["last_known_values"]["last_year_ran"] = self.this_year_str
-            self.config.write(conf)
-
-    def get_day(self):
-        """
-        Get the day and month (MM-DD) of the specified holiday.
-
-        :return: A string of the date.
-        """
-        i = 0
-        setfirstweekday(6)  # Sets the first day of the week to Sunday
-        for week in monthcalendar(self.this_year_int, self.month):
-            if week[0] == 0:
-                continue  # If the first day of the month is not Sunday, disregard that week
-            else:
-                i += 1
-                if i == self.sundays:
-                    return str(week[0])
 
 
 class EventReminder:
@@ -161,12 +159,11 @@ class EventReminder:
 def main():
     """Instantiate the CurrentYear and EventReminder objects, and print upcoming events."""
     current_year = CurrentYear()
+    config = configparser.ConfigParser()
+    current_year.get_last_varying_values(config)
+    current_year.event_items = current_year.get_events()
+
     event_reminder = EventReminder(current_year)
-    # Gets the dates for this year's Mother's and Father's Days
-    # 6-11-18: Logic error where new dates would never be fetched may occur if file year is correct but the dates aren't
-    # Given this should only happen if dates were manually changed, it was deemed too unlikely to occur to bother fixing
-    if current_year.last_year_ran != current_year.this_year_int:
-        current_year.set_new_varying_values()
     event_reminder.print_events()
 
 
