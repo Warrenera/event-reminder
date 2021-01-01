@@ -5,7 +5,7 @@
 """Alert the user at startup to upcoming events from the supplied text files."""
 import configparser
 import csv
-from calendar import monthcalendar
+from calendar import setfirstweekday, monthcalendar
 from datetime import datetime
 
 
@@ -60,8 +60,9 @@ class CurrentYear:
         :return: A string of the date.
         """
         i = 0
+        setfirstweekday(6)
         for week in monthcalendar(self.this_year_int, self.month):
-            if week[6] == 0:  # Sunday being the last day of the week by default
+            if week[0] == 0:  # Sunday being the last day of the week by default
                 continue  # If the first day of the month is not Sunday, disregard that week
             else:
                 i += 1
