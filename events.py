@@ -70,7 +70,6 @@ class CurrentYear:
                 for i, event in enumerate(list_values):
                     if i == 0 and event.startswith("01-"):
                         events[list_values[i] + "-" + str(self.this_year+1)] = list_values[i+1].rstrip("\n")
-                        print("hey")
                     else:
                         break
         return events
