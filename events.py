@@ -107,9 +107,7 @@ class CurrentYear:
 
 
 class EventReminder:
-    """
-    Create and populate an object holding the event lists for each timeframe.
-    """
+    """Create and populate an object holding the event lists for each timeframe."""
     def __init__(self, current_year):
         self.current_year = current_year
         self.this_month = []
@@ -126,18 +124,17 @@ class EventReminder:
         t = datetime.strptime(self.current_year.today, "%m-%d-%Y")
         for date, event in self.current_year.event_items:
             d = datetime.strptime(date, "%m-%d-%Y")
-            if 7 < (d - t).days <= 31:
-                self.this_month.append((date, event))
-            if 1 < (d - t).days <= 7:
-                self.this_week.append((date, event))
             if 0 < (d - t).days <= 1:  # Alternatively, use "date == self.current_year.today:"
                 self.this_day.append((date, event))
+            elif 1 < (d - t).days <= 7:
+                self.this_week.append((date, event))
+            elif 7 < (d - t).days <= 31:
+                self.this_month.append((date, event))
         return [self.this_month, self.this_week, self.this_day]
 
     def print_events(self):
-        """Print events occurring in the next month, week, and today."""
+        """Print events occurring in the next month, week, and day."""
         print("Hello! Welcome to your family and friend birthday and important event reminder, brought to you by wonderful Python!")
-
         if not self.this_month and not self.this_week and not self.this_day:
             print("It looks like there aren't any events coming up!")
         else:
@@ -150,7 +147,7 @@ class EventReminder:
                 print("~*~*~*~*~\n\nThe following events are occurring in the next week:\n")
                 for event in self.this_week:
                     print("     >{0} : {1}".format(*event))
-                print("\nIf you haven't picked up a gift yet, you need to now!\n")
+                print("\nIf you haven't picked up a gift yet, you might want to now!\n")
             if self.this_day:
                 print("~*~*~*~*~\n\nThe following events are occurring today:\n")
                 for event in self.this_day:
@@ -162,13 +159,11 @@ def main():
     """Instantiate the CurrentYear and EventReminder objects, and print upcoming events."""
     current_year = CurrentYear()
     event_reminder = EventReminder(current_year)
-
     # Gets the dates for this year's Mother's and Father's Days
     # 6-11-18: Logic error where new dates would never be fetched may occur if file year is correct but the dates aren't
     # Given this should only happen if dates were manually changed, it was deemed too unlikely to occur to bother fixing
     if current_year.last_year_ran != current_year.this_year:
         current_year.set_new_varying_values()
-
     event_reminder.print_events()
 
 
