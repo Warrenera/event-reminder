@@ -56,8 +56,6 @@ class CurrentYear:
             else:
                 i += 1
                 if i == self.sundays:
-                    self.month += 1  # Father's Day is always in June, the sixth month
-                    self.sundays += 1  # Father's Day is always the third Sunday in June
                     return str(week[0])
 
     def get_events(self):
