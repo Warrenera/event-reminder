@@ -21,7 +21,6 @@ class CurrentYear:
         self.today = self.now.strftime("%m-%d-%Y")
         self.this_year_str = self.now.strftime("%Y")
         self.this_year_int = int(self.this_year_str)
-        self.event_items = {}
 
     def get_last_varying_values(self, config):
         """
@@ -32,7 +31,7 @@ class CurrentYear:
         """
         varying_values = ["last_year_ran", "last_fathers_day", "last_mothers_day"]
         config.read("varying_values.ini")
-        if config.get("last_known_values", varying_values[0]) != self.this_year_int:
+        if config.get("last_known_values", varying_values[0]) is not self.this_year_str:
             # Gets the dates for this year's Mother's and Father's Days
             # 6-11-18: Logic error where new dates would never be fetched may occur if file year is correct but the dates aren't
             # Given this should only happen if dates were manually changed, it was deemed too unlikely to occur to bother fixing
