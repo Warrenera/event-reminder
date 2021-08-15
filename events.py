@@ -1,11 +1,10 @@
-# TODO: Add option to supply events.csv location; if none is given, default to the repo CSV. Probably involves figuring out how
-#  to handle command line arguments in batch files.
-
 """Alert the user at startup to upcoming events from the supplied text files."""
+import argparse
 import configparser
 import csv
 from calendar import setfirstweekday, monthcalendar
 from datetime import datetime
+from os import path
 
 
 class CurrentYear:
@@ -58,15 +57,21 @@ class CurrentYear:
                 if i == self.sundays:
                     return str(week[0])
 
-    def get_events(self):
+    def get_events(self, filepath):
         """
-        Get events listed in events.csv
+        Get events listed in events.csv.
 
+        :param filepath: Filepath of events.csv if different from default.
         :return: Items of the gathered event dictionary.
         """
         events = {self.fathers_day + "-" + self.this_year_str: "Father's Day",
                   self.mothers_day + "-" + self.this_year_str: "Mother's Day"}
-        with open("events.csv", "r") as csvfile:
+
+        fp = "events.csv"
+        if filepath:
+            fp = filepath
+
+        with open(fp, "r") as csvfile:
             dict_list = list(csv.DictReader(csvfile))
         self.list_values(dict_list, events, False)
         if self.now.strftime("%m") == "12":
@@ -146,16 +151,28 @@ class EventReminder:
                 print("\nCall them sometime today!")
 
 
-def main():
+def main(filepath):
     """Instantiate the CurrentYear and EventReminder objects, and print upcoming events."""
     current_year = CurrentYear()
     current_year.get_last_varying_values()
-    current_year.event_items = current_year.get_events()
+    current_year.event_items = current_year.get_events(filepath)
 
     event_reminder = EventReminder(current_year)
     event_reminder.print_events()
 
 
+def parse_arguments():
+    """Parse an optional command line argument pointing to the location of events.csv"""
+    parser = argparse.ArgumentParser(description="Location of events.csv")
+    parser.add_argument("-fp", "--filepath", type=str, help="The location of events.csv")
+
+    args = parser.parse_args()
+    if args.filepath:
+        if not path.exists(args.filepath):
+            raise argparse.ArgumentTypeError("Invalid filepath")
+    return args.filepath
+
+
 # Initialize main function
 if __name__ == "__main__":
-    main()
+    main(parse_arguments())
