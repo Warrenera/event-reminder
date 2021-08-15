@@ -12,3 +12,10 @@ This is a list of dynamic events that will be parsed by events.py. Events need t
 ### Optional Configurations
 #### events.bat
 This batch file runs events.py on Windows startup when placed in the Windows 10 startup folder. The default location for events.py in events.bat is `C:\Repositories\event-reminder\events.py`. This file path should be changed to wherever the script is stored locally on your machine.
+
+## Usage
+Run events.py using `python events.py <[-fp | --filepath] C:\alternate\path\to\events.csv>`.
+
+### Command Line Arguments
+#### -fp | --filepath
+Optional: the path to an alternate location for the events CSV file if different from the default repository filepath.
