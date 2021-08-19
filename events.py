@@ -1,10 +1,10 @@
-"""Alert the user at startup to upcoming events from the supplied text files."""
+"""Alert the user to upcoming events from the supplied text files."""
 import argparse
 import configparser
 import csv
+import os
 from calendar import setfirstweekday, monthcalendar
 from datetime import datetime
-from os import path
 
 
 class CurrentYear:
@@ -22,40 +22,38 @@ class CurrentYear:
 
     def get_last_varying_values(self):
         """
-        Get the values for Mother's Day, Father's Day, and the year of the script's last run as listed in varying_values.ini. If this
-        is the first run of the year (or some other reason the values don't align with this_year) they will be updated first.
+        Get the values for Mother's Day and Father's Day as listed in varying_values.ini. If this is the first run of the year (or if
+        there is some other reason the values don't align with this_year) they will be updated first.
         """
-        varying_values = ["last_year_ran", "last_mothers_day", "last_fathers_day"]
-
         config = configparser.ConfigParser()
         config.read("varying_values.ini")
-        if config.get("last_known_values", varying_values[0]) != self.this_year_str:
-            new_values = [self.this_year_str, self.mothers_day + self.get_day()]
+        if config.get("last_known_values", "last_year_ran") != self.this_year_str:
+            new_values = [self.this_year_str, self.get_day(self.mothers_day)]
             self.month, self.sundays = (1 + x for x in (self.month, self.sundays))
-            new_values.append(self.fathers_day + self.get_day())
+            new_values.append(self.get_day(self.fathers_day))
 
             with open("varying_values.ini", "w") as conf:
-                for i, var in enumerate(varying_values):
-                    config["last_known_values"][var] = new_values[i]
+                for i, option in enumerate(config.options("last_known_values")):
+                    config["last_known_values"][option] = new_values[i]
                 config.write(conf)
-        self.mothers_day = config.get("last_known_values", varying_values[1])
-        self.fathers_day = config.get("last_known_values", varying_values[2])
+        self.mothers_day = config.get("last_known_values", "last_mothers_day")
+        self.fathers_day = config.get("last_known_values", "last_fathers_day")
 
-    def get_day(self):
+    def get_day(self, month_of_day):
         """
         Get the month and day (MM-DD) of the specified holiday.
 
         :return: A string of the date.
         """
         i = 0
-        setfirstweekday(6)
+        setfirstweekday(6)  # Sets Sunday as the first day of the week
         for week in monthcalendar(self.this_year_int, self.month):
             if week[0] == 0:  # Sunday being the last day of the week by default
                 continue  # If the first day of the month is not Sunday, disregard that week
             else:
                 i += 1
                 if i == self.sundays:
-                    return str(week[0])
+                    return month_of_day + str(week[0])
 
     def get_events(self, filepath):
         """
@@ -168,7 +166,7 @@ def parse_arguments():
 
     args = parser.parse_args()
     if args.filepath:
-        if not path.exists(args.filepath):
+        if not os.path.exists(args.filepath):
             raise argparse.ArgumentTypeError("Invalid filepath")
     return args.filepath
 
