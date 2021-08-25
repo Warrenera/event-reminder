@@ -65,11 +65,7 @@ class CurrentYear:
         events = {self.fathers_day + "-" + self.this_year_str: "Father's Day",
                   self.mothers_day + "-" + self.this_year_str: "Mother's Day"}
 
-        fp = "events.csv"
-        if filepath:
-            fp = filepath
-
-        with open(fp, "r") as csvfile:
+        with open(filepath if filepath else "events.csv", "r") as csvfile:
             dict_list = list(csv.DictReader(csvfile))
         self.list_values(dict_list, events, False)
         if self.now.strftime("%m") == "12":
