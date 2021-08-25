@@ -102,12 +102,12 @@ class EventReminder:
         """
         Append the events gathered in the CurrentYear object to their respective lists.
 
-        :return: Finalized lists of events occurring in the next 30 days, 7 days, and 1 day.
+        :return: Finalized lists of events occurring in the next 30 days, 7 days, and 1 day, respectively.
         """
         t = datetime.strptime(self.current_year.today, "%m-%d-%Y")
         for date, event in self.current_year.event_items:
             d = datetime.strptime(date, "%m-%d-%Y")
-            if 0 < (d - t).days <= 1:  # Alternatively, use "date == self.current_year.today:"
+            if 0 < (d - t).days <= 1:
                 self.this_day.append((date, event))
             elif 1 < (d - t).days <= 7:
                 self.this_week.append((date, event))
