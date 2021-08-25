@@ -66,34 +66,27 @@ class CurrentYear:
                   self.mothers_day + "-" + self.this_year_str: "Mother's Day"}
 
         with open(filepath if filepath else "events.csv", "r") as csvfile:
-            dict_list = list(csv.DictReader(csvfile))
-        self.list_values(dict_list, events, False)
-        if self.now.strftime("%m") == "12":
-            self.list_values(dict_list, events, True)
-        return events.items()
+            list_of_dicts = list(csv.DictReader(csvfile))
+        december = True if self.now.strftime("%m") == "12" else False
+        return self.list_values(list_of_dicts, events, december)
 
-    def list_values(self, dict_list, events, december):
+    def list_values(self, list_of_dicts, events, december):
         """
         Abstract out the dictionary-list conversion and add the values present in the CSV to the events dictionary.
 
-        :param dict_list: List of dictionaries from the CSV reader.
+        :param list_of_dicts: List of dictionaries from the CSV reader.
         :param events: Event dictionary to store events from CSV.
         :param december: Boolean determining if the current month is December, necessary to add next January's events if needed.
         :return: The filled events dictionary.
         """
-        for dictionary in dict_list:
+        for dictionary in list_of_dicts:
             list_values = list(dictionary.values())
-            if not december:
-                for i, event in enumerate(list_values):
-                    if i == 0:
-                        events[list_values[i] + "-" + self.this_year_str] = list_values[i+1].rstrip("\n")
+            # list_values[0] will always be a date, list_values[1] an event
+            if december and list_values[0].startswith("01-"):
+                events[list_values[0] + "-" + str(self.this_year_int+1)] = list_values[1].rstrip("\n")
             else:
-                for i, event in enumerate(list_values):
-                    if i == 0 and event.startswith("01-"):
-                        events[list_values[i] + "-" + str(self.this_year_int+1)] = list_values[i+1].rstrip("\n")
-                    else:
-                        break
-        return events
+                events[list_values[0] + "-" + self.this_year_str] = list_values[1].rstrip("\n")
+        return events.items()
 
 
 class EventReminder:
