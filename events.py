@@ -29,7 +29,7 @@ class CurrentYear:
         config.read("varying_values.ini")
         if config.get("last_known_values", "last_year_ran") != self.this_year_str:
             new_values = [self.this_year_str, self.get_day(self.mothers_day)]
-            self.month, self.sundays = (1 + x for x in (self.month, self.sundays))
+            self.month, self.sundays = (1 + date for date in (self.month, self.sundays))
             new_values.append(self.get_day(self.fathers_day))
 
             with open("varying_values.ini", "w") as conf:
@@ -80,8 +80,9 @@ class CurrentYear:
         :return: The filled events dictionary.
         """
         for dictionary in list_of_dicts:
+            if len(dictionary) > 2:
+                raise Exception("Dictionary must only consist of a date and event.")
             list_values = list(dictionary.values())
-            # list_values[0] will always be a date, list_values[1] an event
             if december and list_values[0].startswith("01-"):
                 events[list_values[0] + "-" + str(self.this_year_int+1)] = list_values[1].rstrip("\n")
             else:
@@ -106,7 +107,11 @@ class EventReminder:
         """
         t = datetime.strptime(self.current_year.today, "%m-%d-%Y")
         for date, event in self.current_year.event_items:
-            d = datetime.strptime(date, "%m-%d-%Y")
+            try:
+                d = datetime.strptime(date, "%m-%d-%Y")
+            except ValueError as e:
+                print("Dictionary must consist of an MM-DD date, then a a description of that date's event.")
+                raise e
             if 0 < (d - t).days <= 1:
                 self.this_day.append((date, event))
             elif 1 < (d - t).days <= 7:
