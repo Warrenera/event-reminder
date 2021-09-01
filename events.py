@@ -81,7 +81,9 @@ class CurrentYear:
         """
         for dictionary in list_of_dicts:
             if len(dictionary) > 2:
-                raise Exception("Dictionary must only consist of a date and event.")
+                raise Exception("Dictionary must only consist of a date and event."
+                                "\nExpected: {'date': 'MM-DD', 'event': \"Event Description\"}"
+                                f"\nGot: {dictionary}")
             list_values = list(dictionary.values())
             if december and list_values[0].startswith("01-"):
                 events[list_values[0] + "-" + str(self.this_year_int+1)] = list_values[1].rstrip("\n")
@@ -156,7 +158,7 @@ def main(filepath):
 def parse_arguments():
     """Parse an optional command line argument pointing to the location of events.csv"""
     parser = argparse.ArgumentParser(description="Location of events.csv")
-    parser.add_argument("-fp", "--filepath", type=str, help="The location of events.csv")
+    parser.add_argument("-f", "--filepath", type=str, help="The location of events.csv")
 
     args = parser.parse_args()
     if args.filepath:
