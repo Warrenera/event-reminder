@@ -14,7 +14,12 @@ class CurrentYear:
     month = 5    # Mother's Day is always in May, the fifth month
     sundays = 2  # Mother's Day is always the second Sunday in May
 
-    def __init__(self):
+    def __init__(self, filepaths):
+        self.filepaths = {}
+        for arg, filepath in filepaths.items():
+            if filepath:
+                self.filepaths[arg] = filepath
+
         self.now = datetime.now()
         self.today = self.now.strftime("%m-%d-%Y")
         self.this_year_str = self.now.strftime("%Y")
@@ -26,7 +31,11 @@ class CurrentYear:
         there is some other reason the values don't align with this_year) they will be updated first.
         """
         config = configparser.ConfigParser()
-        config.read("varying_values.ini")
+        try:
+            config.read(self.filepaths["varying_values"])
+        except KeyError:
+            config.read("varying_values.ini")
+
         if config.get("last_known_values", "last_year_ran") != self.this_year_str:
             new_values = [self.this_year_str, self.get_day(self.mothers_day)]
             self.month, self.sundays = (1 + date for date in (self.month, self.sundays))
@@ -55,18 +64,21 @@ class CurrentYear:
                 if i == self.sundays:
                     return month_of_day + str(week[0])
 
-    def get_events(self, filepath):
+    def get_events(self):
         """
         Get events listed in events.csv.
 
-        :param filepath: Filepath of events.csv if different from default.
         :return: Items of the gathered event dictionary.
         """
         events = {self.fathers_day + "-" + self.this_year_str: "Father's Day",
                   self.mothers_day + "-" + self.this_year_str: "Mother's Day"}
 
-        with open(filepath if filepath else "events.csv", "r") as csvfile:
-            list_of_dicts = list(csv.DictReader(csvfile))
+        try:
+            with open(self.filepaths["events"], "r") as csvfile:
+                list_of_dicts = list(csv.DictReader(csvfile))
+        except KeyError:
+            with open("events.csv", "r") as csvfile:
+                list_of_dicts = list(csv.DictReader(csvfile))
         december = True if self.now.strftime("%m") == "12" else False
         return self.list_values(list_of_dicts, events, december)
 
@@ -142,14 +154,14 @@ class EventReminder:
                 print("~*~*~*~*~\n\nThe following events are occurring today:\n")
                 for event in self.this_day:
                     print("     >{0} : {1}".format(*event))
-                print("\nCall them sometime today!")
+                print("\nCall them sometime today!\n")
 
 
-def main(filepath):
+def main(filepaths):
     """Instantiate the CurrentYear and EventReminder objects, and print upcoming events."""
-    current_year = CurrentYear()
+    current_year = CurrentYear(filepaths)
     current_year.get_last_varying_values()
-    current_year.event_items = current_year.get_events(filepath)
+    current_year.event_items = current_year.get_events()
 
     event_reminder = EventReminder(current_year)
     event_reminder.print_events()
@@ -158,13 +170,15 @@ def main(filepath):
 def parse_arguments():
     """Parse an optional command line argument pointing to the location of events.csv"""
     parser = argparse.ArgumentParser(description="Location of events.csv")
-    parser.add_argument("-f", "--filepath", type=str, help="The location of events.csv")
+    parser.add_argument("-e", "--events", type=str, help="The location of events.csv")
+    parser.add_argument("-v", "--varying_values", type=str, help="The location of varying_values.ini")
 
-    args = parser.parse_args()
-    if args.filepath:
-        if not os.path.exists(args.filepath):
-            raise argparse.ArgumentTypeError("Invalid filepath")
-    return args.filepath
+    args = vars(parser.parse_args())
+    for arg in args.values():
+        if arg:
+            if not os.path.exists(arg):
+                raise argparse.ArgumentTypeError(f"Invalid filepath: {arg}")
+    return args
 
 
 # Initialize main function
