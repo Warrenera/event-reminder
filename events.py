@@ -124,13 +124,14 @@ class EventReminder:
             try:
                 d = datetime.strptime(date, "%m-%d-%Y")
             except ValueError as e:
-                print("Dictionary must consist of an MM-DD date, then a a description of that date's event.")
+                print("Dictionary must consist of an MM-DD date, then a description of that date's event.")
                 raise e
-            if 0 < (d - t).days <= 1:
+            days_to_event = (d - t).days
+            if 0 <= days_to_event < 1:
                 self.this_day.append((date, event))
-            elif 1 < (d - t).days <= 7:
+            elif 1 <= days_to_event < 7:
                 self.this_week.append((date, event))
-            elif 7 < (d - t).days <= 31:
+            elif 7 <= days_to_event < 31:
                 self.this_month.append((date, event))
         return [self.this_month, self.this_week, self.this_day]
 
