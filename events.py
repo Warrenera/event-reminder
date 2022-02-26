@@ -45,17 +45,13 @@ class CurrentYear:
                         return month_of_day + str(week[0])
 
         config = configparser.ConfigParser()
-        try:
-            config.read(self.filepaths["varying_values"])
-        except KeyError:
-            config.read("varying_values.ini")
-
+        config.read(self.filepaths["varying_values.ini"])
         if config.get("last_known_values", "last_year_ran") != self.this_year_str:
             new_values = [self.this_year_str, _get_day(self.mothers_day)]
             self.month, self.sundays = (1 + date for date in (self.month, self.sundays))
             new_values.append(_get_day(self.fathers_day))
 
-            with open("varying_values.ini", "w") as conf:
+            with open(self.filepaths["varying_values.ini"], "w") as conf:
                 for i, option in enumerate(config.options("last_known_values")):
                     config["last_known_values"][option] = new_values[i]
                 config.write(conf)
@@ -71,13 +67,9 @@ class CurrentYear:
         events = {self.fathers_day + "-" + self.this_year_str: "Father's Day",
                   self.mothers_day + "-" + self.this_year_str: "Mother's Day"}
 
-        try:
-            with open(self.filepaths["events"], "r") as csvfile:
-                list_of_dicts = list(csv.DictReader(csvfile))
-        except KeyError:
-            with open("events.csv", "r") as csvfile:
-                list_of_dicts = list(csv.DictReader(csvfile))
-        december = True if self.now.strftime("%m") == "12" else False
+        with open(self.filepaths["events.csv"], "r") as csvfile:
+            list_of_dicts = list(csv.DictReader(csvfile))
+        december = True if self.this_month_str == "12" else False
         return self.list_values(list_of_dicts, events, december)
 
     def list_values(self, list_of_dicts, events, december):
@@ -91,9 +83,9 @@ class CurrentYear:
         """
         for dictionary in list_of_dicts:
             if len(dictionary) > 2:
-                raise Exception("Dictionary must only consist of a date and event."
-                                "\nExpected: {'date': 'MM-DD', 'event': \"Event Description\"}"
-                                f"\nGot: {dictionary}")
+                raise ValueError("Dictionary must only consist of a date and event.\n"
+                                 "Expected: {'date': 'MM-DD', 'event': \"Event Description\"}\n"
+                                 f"Got: {dictionary}")
             list_values = list(dictionary.values())
             if december and list_values[0].startswith("01-"):
                 events[list_values[0] + "-" + str(self.this_year_int + 1)] = list_values[1].rstrip("\n")
@@ -170,14 +162,17 @@ def main(filepaths):
 def parse_arguments():
     """Parse optional command line arguments pointing to the location of events.csv and varying_values.ini"""
     parser = argparse.ArgumentParser(description="Location of events.csv")
-    parser.add_argument("-e", "--events", type=str, help="The location of events.csv")
-    parser.add_argument("-v", "--varying_values", type=str, help="The location of varying_values.ini")
+    parser.add_argument("-e", "--events", type=str, help="The location of events.csv", dest="events.csv")
+    parser.add_argument("-v", "--varying_values", type=str, help="The location of varying_values.ini", dest="varying_values.ini")
 
     args = vars(parser.parse_args())
-    for arg in args.values():
-        if arg:
-            if not os.path.exists(arg):
-                raise argparse.ArgumentTypeError(f"Invalid filepath: {arg}")
+    for arg, filepath in args.items():
+        try:
+            os.path.isfile(filepath)
+        except TypeError as e:
+            print(f"INFO: Using default {arg} because {repr(e)} occurred.")
+            default = {arg: arg}
+            args.update(default)
     return args
 
 
