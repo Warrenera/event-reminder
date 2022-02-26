@@ -27,6 +27,23 @@ class CurrentYear:
         Get the values for Mother's Day and Father's Day as listed in varying_values.ini. If this is the first run of the year (or if
         there is some other reason the values don't align with this_year) they will be updated first.
         """
+
+        def _get_day(month_of_day):
+            """
+            Get the month and day (MM-DD) of the specified holiday.
+
+            :return: A string of the date.
+            """
+            j = 0
+            setfirstweekday(6)  # Sets Sunday as the first day of the week
+            for week in monthcalendar(self.this_year_int, self.month):
+                if week[0] == 0:  # Sunday being the last day of the week by default
+                    continue  # If the first day of the month is not Sunday, disregard that week
+                else:
+                    j += 1
+                    if j == self.sundays:
+                        return month_of_day + str(week[0])
+
         config = configparser.ConfigParser()
         try:
             config.read(self.filepaths["varying_values"])
@@ -34,9 +51,9 @@ class CurrentYear:
             config.read("varying_values.ini")
 
         if config.get("last_known_values", "last_year_ran") != self.this_year_str:
-            new_values = [self.this_year_str, self.get_day(self.mothers_day)]
+            new_values = [self.this_year_str, _get_day(self.mothers_day)]
             self.month, self.sundays = (1 + date for date in (self.month, self.sundays))
-            new_values.append(self.get_day(self.fathers_day))
+            new_values.append(_get_day(self.fathers_day))
 
             with open("varying_values.ini", "w") as conf:
                 for i, option in enumerate(config.options("last_known_values")):
@@ -44,22 +61,6 @@ class CurrentYear:
                 config.write(conf)
         self.mothers_day = config.get("last_known_values", "last_mothers_day")
         self.fathers_day = config.get("last_known_values", "last_fathers_day")
-
-    def get_day(self, month_of_day):
-        """
-        Get the month and day (MM-DD) of the specified holiday.
-
-        :return: A string of the date.
-        """
-        i = 0
-        setfirstweekday(6)  # Sets Sunday as the first day of the week
-        for week in monthcalendar(self.this_year_int, self.month):
-            if week[0] == 0:  # Sunday being the last day of the week by default
-                continue  # If the first day of the month is not Sunday, disregard that week
-            else:
-                i += 1
-                if i == self.sundays:
-                    return month_of_day + str(week[0])
 
     def get_events(self):
         """
